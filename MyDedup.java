@@ -7,9 +7,6 @@ import static java.lang.String.*;
 
 public class MyDedup {
 
-    public void upload(int minChunk, int avgChunk, int maxChunk, int base, String fileToUpload){
-
-    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
