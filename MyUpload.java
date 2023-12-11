@@ -16,14 +16,17 @@ public class MyUpload {
     private String fileToUpload;
     private int anchorMask;
     private byte[] container;
+    private MetaData metadata;
 
-    public MyUpload(int minChunk, int avgChunk, int maxChunk, int base, String fileToUpload){
+    public MyUpload(int minChunk, int avgChunk, int maxChunk, int base, String fileToUpload) throws IOException{
         this.minChunk = minChunk;
         this.avgChunk = avgChunk;
         this.maxChunk = maxChunk;
         this.base = base;
         this.fileToUpload = fileToUpload;
         this.anchorMask = (1<<31)-1; 
+        this.metadata = new MetaData();
+        this.metadata.read("mydedup.index");
         this.container = new byte[1024*1024];
     }
 
@@ -79,12 +82,11 @@ public class MyUpload {
     }
 
     public void uploadFile(ArrayList<Integer> anchorList, byte[] fileContent) throws IOException, NoSuchAlgorithmException, ClassNotFoundException{
-        String fingerprintIndexFile = "mydedup.index";
-        MetaData metadata = new MetaData();
+        
         ArrayList<String> fileInfo = new ArrayList<String>();
         MessageDigest md = MessageDigest.getInstance("SHA-1");
-        metadata.read(fingerprintIndexFile);
         
+
         for (int i = 0; i < anchorList.size(); i++) {
             if (i == 0){
                 md.update(fileContent, 0, anchorList.get(0));
@@ -96,25 +98,29 @@ public class MyUpload {
             String checkSumStr = new BigInteger(checkSumBytes).toString();
             fileInfo.add(checkSumStr);
             if (i == 0){
-                if (!metadata.hasChunk(checkSumStr)){
+                if (!this.metadata.hasChunk(checkSumStr)){
                     byte[] currentChunk = Arrays.copyOfRange(fileContent, 0, anchorList.get(0));
-                    metadata.putChunk(checkSumStr, currentChunk, this.container);
+                    this.metadata.putChunk(checkSumStr, currentChunk, this.container);
                 }
             }
             else{
-                if (!metadata.hasChunk(checkSumStr)){
+                if (!this.metadata.hasChunk(checkSumStr)){
                     byte[] currentChunk = Arrays.copyOfRange(fileContent, anchorList.get(i-1), anchorList.get(i));
-                    metadata.putChunk(checkSumStr, currentChunk, this.container);
+                    this.metadata.putChunk(checkSumStr, currentChunk, this.container);
                 }
             }
         }
-        metadata.putFile(this.fileToUpload, fileInfo, fileContent.length);
-        metadata.write(fingerprintIndexFile, this.container);
-        metadata.reportStat();
+        this.metadata.putFile(this.fileToUpload, fileInfo, fileContent.length);
+        this.metadata.write("mydedup.index", this.container);
+        this.metadata.reportStat();
     }
 
     public void upload() throws NoSuchAlgorithmException, ClassNotFoundException{
         File file = new File(this.fileToUpload);
+        if (metadata.getFileRecipe().containsKey(this.fileToUpload)){
+            System.err.println(this.fileToUpload + " has been uploaded before! Please select another file to upload!");
+            return;
+        }
         ArrayList<Integer> anchorList;
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] fileContent = new byte[(int) file.length()];
@@ -122,7 +128,6 @@ public class MyUpload {
             fis.close();
             anchorList = this.chunking(fileContent, (int) file.length());
             this.uploadFile(anchorList, fileContent);
-            
         } catch (IOException e) {
             e.printStackTrace();
         }

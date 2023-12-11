@@ -1,6 +1,4 @@
-import java.util.*;
-import java.io.*;
-import java.lang.ClassNotFoundException;
+import java.io.Serializable;
 
 public class Chunk implements Serializable {
     private int containerIndex;

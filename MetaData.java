@@ -12,6 +12,7 @@ public class MetaData {
     private int containerNum;
     private int containerIndex;
     private double deduRatio;
+    private int uploadedFileNum;
     private static int maxContainerSize = 1024*1024;
     private int containerOffset;
 
@@ -26,6 +27,11 @@ public class MetaData {
         this.deduRatio = 0;
         this.containerIndex = 0;
         this.containerOffset = 0;
+        this.uploadedFileNum = 0;
+    }
+
+    public HashMap<String, ArrayList<String>> getFileRecipe(){
+        return this.fileFingerprintList;
     }
 
     public void putChunk(String checksumStr, byte[] currentChunk, byte[] container){
@@ -64,6 +70,7 @@ public class MetaData {
     public void putFile(String uploadFileName, ArrayList<String> fingerprintList, int totalBytes){
         this.totalChunks += fingerprintList.size();
         this.totalBytes += totalBytes;
+        this.uploadedFileNum ++;
         this.fileFingerprintList.put(uploadFileName, fingerprintList);
     }
 
@@ -96,7 +103,16 @@ public class MetaData {
     } 
 
     public void write(String path, byte[] container) throws IOException, ClassNotFoundException{
-        String filename = "container_" + Integer.toString(this.containerIndex);
+        String filename = "data/container_" + Integer.toString(this.containerIndex);
+        File directory = new File("data");
+        if (!directory.exists()){
+            directory.mkdir();
+        }
+        try (FileOutputStream fos = new FileOutputStream(filename)) {
+            fos.write(container);
+        } catch (IOException e) {
+            System.out.println("Error writing data to file: " + e.getMessage());
+        }
         this.containerIndex++;
         this.containerOffset = 0;
         this.containerNum++;
@@ -120,7 +136,7 @@ public class MetaData {
 
     public void reportStat(){     
         System.out.println("Report Output:");
-        System.out.println("Total number of files that have been stored: " + Integer.toString(this.fileFingerprintList.size()));
+        System.out.println("Total number of files that have been stored: " + Integer.toString(this.uploadedFileNum));
         System.out.println("Total number of pre-deduplicated chunks in storage: " + Long.toString(this.totalChunks));
         System.out.println("Total number of unique chunks in storage: " + Long.toString(this.uniqueChunks));
         System.out.println("Total number of bytes of pre-deduplicated chunks in storage: " + Long.toString(this.totalBytes));
