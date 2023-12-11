@@ -4,7 +4,7 @@ import java.lang.ClassNotFoundException;
 
 public class MetaData {
     private HashMap<String, Chunk> fingerprintList;
-    private HashMap<String, ArrayList<String>> fileFingerprintList;
+    private HashMap<String, FileRecipe> fileStoring;
     private long totalChunks;
     private long uniqueChunks;
     private long totalBytes;
@@ -18,7 +18,7 @@ public class MetaData {
 
     public MetaData(){
         this.fingerprintList = new HashMap<String, Chunk>(); 
-        this.fileFingerprintList = new HashMap<String, ArrayList<String>>();
+        this.fileStoring = new HashMap<String, FileRecipe>();
         this.totalChunks = 0;
         this.uniqueChunks = 0;
         this.totalBytes = 0;
@@ -30,8 +30,12 @@ public class MetaData {
         this.uploadedFileNum = 0;
     }
 
-    public HashMap<String, ArrayList<String>> getFileRecipe(){
-        return this.fileFingerprintList;
+    public HashMap<String, FileRecipe> getFileRecipe(){
+        return this.fileStoring;
+    }
+
+    public HashMap<String, Chunk> getMapping(){
+        return this.fingerprintList;
     }
 
     public void putChunk(String checksumStr, byte[] currentChunk, byte[] container){
@@ -53,7 +57,8 @@ public class MetaData {
                 directory.mkdir();
             }
             try (FileOutputStream fos = new FileOutputStream(filename)) {
-                fos.write(container);
+                ObjectOutputStream out = new ObjectOutputStream(fos);
+                out.writeObject(container);
             } catch (IOException e) {
                 System.err.println("[ERROR] Error writing data to file: " + e.getMessage());
             }
@@ -71,7 +76,10 @@ public class MetaData {
         this.totalChunks += fingerprintList.size();
         this.totalBytes += totalBytes;
         this.uploadedFileNum++;
-        this.fileFingerprintList.put(uploadFileName, fingerprintList);
+        FileRecipe myfile = new FileRecipe();
+        myfile.setFileSize(totalBytes);
+        myfile.addFingerprintList(fingerprintList);
+        this.fileStoring.put(uploadFileName, myfile);
     }
 
     public boolean hasChunk(String checksumStr){
@@ -84,7 +92,7 @@ public class MetaData {
             try{
                 ObjectInputStream input = new ObjectInputStream(new FileInputStream(path));
                 this.fingerprintList = (HashMap<String, Chunk>) input.readObject();
-                this.fileFingerprintList = (HashMap<String, ArrayList<String>>) input.readObject();
+                this.fileStoring = (HashMap<String, FileRecipe>) input.readObject();
                 this.totalChunks = (Long) input.readObject();
                 this.uniqueChunks = (Long) input.readObject();
                 this.totalBytes = (Long) input.readObject();
@@ -112,7 +120,8 @@ public class MetaData {
             directory.mkdir();
         }
         try (FileOutputStream fos = new FileOutputStream(filename)) {
-            fos.write(container);
+            ObjectOutputStream out = new ObjectOutputStream(fos);
+            out.writeObject(container);
         } catch (IOException e) {
             System.err.println("[ERROR] Error writing data to file: " + e.getMessage());
         }
@@ -120,14 +129,10 @@ public class MetaData {
         this.containerOffset = 0;
         this.containerNum++;
         this.deduRatio = (double)this.totalBytes/(double)this.uniqueBytes;
-        try (FileOutputStream fos = new FileOutputStream(filename)) {
-            fos.write(container);
-        } catch (IOException e) {
-            System.out.println("Error writing data to file: " + e.getMessage());
-        }
+        
         ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path));
         out.writeObject(this.fingerprintList);
-        out.writeObject(this.fileFingerprintList);
+        out.writeObject(this.fileStoring);
         out.writeObject(this.totalChunks);
         out.writeObject(this.uniqueChunks);
         out.writeObject(this.totalBytes);

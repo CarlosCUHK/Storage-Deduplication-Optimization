@@ -1,13 +1,10 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.w3c.dom.Text;
 import static java.lang.String.*;
 
 
 public class MyDedup {
-
-
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
             helpInfo();
@@ -28,7 +25,7 @@ public class MyDedup {
                     int base = Integer.parseInt(args[4]);
                     String fileToUpload = args[5];
                     if (!fileExistence(fileToUpload)){
-                        System.out.println("The file to upload does does not exist!!!");
+                        System.err.println("[ERROR] The file to upload does does not exist!!!");
                         System.exit(1);
                     }
                     MyUpload myUpload = new MyUpload(minChunk, avgChunk, maxChunk, base, fileToUpload);
@@ -41,16 +38,10 @@ public class MyDedup {
                     }
                     String fileToDownload = args[1];
                     String localFileName = args[2];
-                    if (!fileExistence(fileToDownload)){
-                        System.out.println("The file to download does does not exist!!!");
-                        System.exit(1);
-                    }
                     MyDownload myDownload = new MyDownload(fileToDownload, localFileName);
-                    
+                    myDownload.download();
                     break;
                 default:
-                    helpInfo();
-                    System.err.println("Invalid Command");
                     break;
             }
         }

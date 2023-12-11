@@ -110,16 +110,20 @@ public class MyUpload {
                 }
             }
         }
-        this.metadata.putFile(this.fileToUpload, fileInfo, fileContent.length);
+        String[] tmp = this.fileToUpload.split("/");
+        String fileName = tmp[tmp.length -1];
+        this.metadata.putFile(fileName, fileInfo, fileContent.length);
         this.metadata.write("mydedup.index", this.container);
         this.metadata.reportStat();
     }
 
     public void upload() throws NoSuchAlgorithmException, ClassNotFoundException{
         File file = new File(this.fileToUpload);
-        if (metadata.getFileRecipe().containsKey(this.fileToUpload)){
+        String[] tmp = this.fileToUpload.split("/");
+        String fileName = tmp[tmp.length -1];
+        if (metadata.getFileRecipe().containsKey(fileName)){
             System.err.println( "[ERROR] " + this.fileToUpload + " has been uploaded before! Please select another file to upload!");
-            return;
+            System.exit(1);;
         }
         ArrayList<Integer> anchorList;
         try (FileInputStream fis = new FileInputStream(file)) {
