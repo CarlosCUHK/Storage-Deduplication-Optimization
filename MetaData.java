@@ -55,7 +55,7 @@ public class MetaData {
             try (FileOutputStream fos = new FileOutputStream(filename)) {
                 fos.write(container);
             } catch (IOException e) {
-                System.out.println("Error writing data to file: " + e.getMessage());
+                System.err.println("[ERROR] Error writing data to file: " + e.getMessage());
             }
             chunkBytes = currentChunk.length;
             Chunk chunk = new Chunk(this.containerIndex, this.containerOffset, currentChunk.length);        
@@ -70,7 +70,7 @@ public class MetaData {
     public void putFile(String uploadFileName, ArrayList<String> fingerprintList, int totalBytes){
         this.totalChunks += fingerprintList.size();
         this.totalBytes += totalBytes;
-        this.uploadedFileNum ++;
+        this.uploadedFileNum++;
         this.fileFingerprintList.put(uploadFileName, fingerprintList);
     }
 
@@ -91,6 +91,9 @@ public class MetaData {
                 this.uniqueBytes = (Long) input.readObject();
                 this.containerNum = (Integer) input.readObject();
                 this.deduRatio = (Double) input.readObject();
+                this.containerIndex = (Integer) input.readObject();
+                this.containerOffset = (Integer) input.readObject();
+                this.uploadedFileNum = (Integer) input.readObject();
                 input.close();
             }
             catch (Exception e){
@@ -111,7 +114,7 @@ public class MetaData {
         try (FileOutputStream fos = new FileOutputStream(filename)) {
             fos.write(container);
         } catch (IOException e) {
-            System.out.println("Error writing data to file: " + e.getMessage());
+            System.err.println("[ERROR] Error writing data to file: " + e.getMessage());
         }
         this.containerIndex++;
         this.containerOffset = 0;
@@ -130,7 +133,10 @@ public class MetaData {
         out.writeObject(this.totalBytes);
         out.writeObject(this.uniqueBytes);
         out.writeObject(this.containerNum);
-        out.writeObject(deduRatio);
+        out.writeObject(this.deduRatio);
+        out.writeObject(this.containerIndex);
+        out.writeObject(this.containerOffset);
+        out.writeObject(this.uploadedFileNum);
         out.close();
     }
 
