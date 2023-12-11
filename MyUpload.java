@@ -118,7 +118,7 @@ public class MyUpload {
     public void upload() throws NoSuchAlgorithmException, ClassNotFoundException{
         File file = new File(this.fileToUpload);
         if (metadata.getFileRecipe().containsKey(this.fileToUpload)){
-            System.err.println(this.fileToUpload + " has been uploaded before! Please select another file to upload!");
+            System.err.println( "[ERROR] " + this.fileToUpload + " has been uploaded before! Please select another file to upload!");
             return;
         }
         ArrayList<Integer> anchorList;
