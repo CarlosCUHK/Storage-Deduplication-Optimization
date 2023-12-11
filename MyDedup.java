@@ -7,9 +7,6 @@ import static java.lang.String.*;
 
 public class MyDedup {
 
-    public void upload(int minChunk, int avgChunk, int maxChunk, int base, String fileToUpload){
-
-    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
@@ -34,7 +31,8 @@ public class MyDedup {
                         System.out.println("The file to upload does does not exist!!!");
                         System.exit(1);
                     }
-                    this.upload(minChunk, avgChunk, maxChunk, base, fileToUpload);
+                    MyUpload myUpload = new MyUpload(minChunk, avgChunk, maxChunk, base, fileToUpload);
+                    myUpload.upload();
                     break;
                 case "download":
                     if (args.length != 3){
@@ -47,10 +45,12 @@ public class MyDedup {
                         System.out.println("The file to download does does not exist!!!");
                         System.exit(1);
                     }
+                    MyDownload myDownload = new MyDownload(fileToDownload, localFileName);
+                    
                     break;
                 default:
                     helpInfo();
-                    System.System.err.println("Invalid Command");
+                    System.err.println("Invalid Command");
                     break;
             }
         }
