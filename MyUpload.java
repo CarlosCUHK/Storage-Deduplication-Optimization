@@ -46,9 +46,12 @@ public class MyUpload {
         int endIndex = 0;
         int chunkSize = 0;
         long p = 0;
+        boolean flag = false;
         while(true){
             if (endIndex == length){
-                anchorList.add(endIndex);
+                if (!flag){
+                    anchorList.add(endIndex);
+                }
                 break;
             }
             if (((anchorMask & p) == 0) && endIndex != 0){
@@ -64,6 +67,7 @@ public class MyUpload {
                 for (; endIndex < startIndex+this.minChunk; endIndex++){
                     if (endIndex == length){
                         anchorList.add(endIndex);
+                        flag = true;
                         break;
                     }
                     else{
